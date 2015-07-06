@@ -15,6 +15,7 @@
 
 #include "bbox.cc"
 #include "rstore/naive_rstore.cpp"
+#include "rstore/rtree.cc"
 
 void pprint(const BBox rect) {
   std::cout << "LEFT: ";
@@ -63,9 +64,11 @@ int main() {
   reference.right  = 0;
   reference.bottom = -1;
   reference.top  = 1;
+  pprint( reference );
 
   for (auto rect : rstore.overlapping(reference) ) {
     pprint( rect.second );
+    std::cout<<std::endl;
   }
 
   return boost::exit_success;
