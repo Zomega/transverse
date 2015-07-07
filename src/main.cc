@@ -1,21 +1,57 @@
 // Copyright 2015 Will Oursler
 
+#include <boost/config.hpp>
+#include <boost/iterator/filter_iterator.hpp>
+#include <boost/cstdlib.hpp>  // for exit_success
 #include <stdio.h>
 #include <random>
 #include <iostream>
 #include <vector>
-#include <boost/config.hpp>
-#include <boost/iterator/filter_iterator.hpp>
-#include <boost/cstdlib.hpp>  // for exit_success
 #include <algorithm>
 #include <functional>
 #include <string>
 #include <iterator>
 #include <utility>
 
-#include "bbox.cc"
-#include "rstore/naive_rstore.cpp"
-#include "rstore/rtree.cc"
+#include "bbox.h"
+#include "rstore.h"
+#include "naive_rstore.h"
+
+class bbox_distribution {
+ private:
+  std::uniform_real_distribution<float> x_dist, y_dist, width_dist, height_dist;
+
+ public:
+  bbox_distribution(
+    std::uniform_real_distribution<float> x_dist,
+    std::uniform_real_distribution<float> y_dist,
+    std::uniform_real_distribution<float> width_dist,
+    std::uniform_real_distribution<float> height_dist )
+    : x_dist(x_dist),
+    y_dist(y_dist),
+    width_dist(width_dist),
+    height_dist(height_dist) {}
+
+  template <class RNG>
+  BBox operator()(RNG &gen);
+};
+
+template <class RNG>
+BBox bbox_distribution::operator()(RNG &gen) {
+  float x_center = x_dist(gen);
+  float y_center = y_dist(gen);
+  float width = width_dist(gen);
+  float height = height_dist(gen);
+
+  BBox rect;
+
+  rect.left = x_center - (width / 2);
+  rect.right  = x_center + (width / 2);
+  rect.bottom = x_center - (height / 2);
+  rect.top  = x_center + (height / 2);
+
+  return rect;
+}
 
 void pprint(const BBox rect) {
   std::cout << "LEFT: ";
@@ -64,11 +100,11 @@ int main() {
   reference.right  = 0;
   reference.bottom = -1;
   reference.top  = 1;
-  pprint( reference );
+  pprint(reference);
 
-  for (auto rect : rstore.overlapping(reference) ) {
-    pprint( rect.second );
-    std::cout<<std::endl;
+  for (auto rect : rstore.overlapping(reference)) {
+    pprint(rect.second);
+    std::cout << std::endl;
   }
 
   return boost::exit_success;

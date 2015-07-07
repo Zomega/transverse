@@ -1,3 +1,5 @@
+// Copyright 2015 Will Oursler
+
 #include "bbox.h"
 
 bool _overlapped_helper(float left1, bool l_inf1, float right1, bool r_inf1,
@@ -25,19 +27,84 @@ bool overlapped(const BBox r1, const BBox r2) {
   return overlapped_x && overlapped_y;
 }
 
-template <class RNG>
-BBox bbox_distribution::operator()(RNG &gen) {
-  float x_center = x_dist(gen);
-  float y_center = y_dist(gen);
-  float width = width_dist(gen);
-  float height = height_dist(gen);
+BBox bound(std::vector<Point> points) {
+  bool first_pass = true;
+  float min_x, min_y, max_x, max_y = 0;
 
-  BBox rect;
+  for (Point p : points) {
+    if (first_pass) {
+      min_x = max_x = p.x;
+      min_y = max_y = p.y;
+      first_pass = false;
+      continue;
+    }
+    if (p.x < min_x)
+      min_x = p.x;
+    if (p.y < min_y)
+      min_y = p.y;
+    if (p.x > max_x)
+      max_x = p.x;
+    if (p.y > max_y)
+      max_y = p.y;
+  }
 
-  rect.left = x_center - (width / 2);
-  rect.right  = x_center + (width / 2);
-  rect.bottom = x_center - (height / 2);
-  rect.top  = x_center + (height / 2);
+  BBox result;
+  result.left = min_x;
+  result.right = max_x;
+  result.bottom = min_y;
+  result.top = max_y;
+  return result;
+}
 
-  return rect;
+// TODO(woursler): Generalize with Boundable* / abstract class?
+BBox bound(std::vector<BBox> boxes) {
+  bool first_pass = true;
+  float min_x, min_y, max_x, max_y = 0;
+  bool l_inf, r_inf, t_inf, b_inf = false;
+
+  for (BBox b : boxes) {
+    if (first_pass) {
+      min_x = b.left;
+      max_x = b.right;
+      min_y = b.bottom;
+      max_y = b.top;
+
+      l_inf = b.l_inf;
+      r_inf = b.r_inf;
+      t_inf = b.t_inf;
+      b_inf = b.b_inf;
+
+      first_pass = false;
+      continue;
+    }
+
+    if (b.left < min_x)
+      min_x = b.left;
+    if (b.bottom < min_y)
+      min_y = b.bottom;
+    if (b.right > max_x)
+      max_x = b.right;
+    if (b.top > max_y)
+      max_y = b.top;
+
+    if (b.l_inf)
+      l_inf = true;
+    if (b.r_inf)
+      r_inf = true;
+    if (b.t_inf)
+      t_inf = true;
+    if (b.b_inf)
+      b_inf = true;
+  }
+
+  BBox result;
+  result.left = min_x;
+  result.right = max_x;
+  result.bottom = min_y;
+  result.top = max_y;
+  result.l_inf = l_inf;
+  result.r_inf = r_inf;
+  result.t_inf = t_inf;
+  result.b_inf = b_inf;
+  return result;
 }

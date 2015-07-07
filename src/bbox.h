@@ -1,5 +1,13 @@
-#ifndef _TRANSVERSE_BBOX_H_
-#define _TRANSVERSE_BBOX_H_
+// Copyright 2015 Will Oursler
+
+#ifndef BBOX_H_
+#define BBOX_H_
+
+#include <random>
+#include <iostream>
+#include <vector>
+
+#include "point.h"
 
 /**
 * Bounding box class. Allows for infinite bounding boxes.
@@ -25,23 +33,8 @@ struct BBox {
 
 bool overlapped(const BBox r1, const BBox r2);
 
-class bbox_distribution {
- private:
-  std::uniform_real_distribution<float> x_dist, y_dist, width_dist, height_dist;
+BBox bound(std::vector<Point> points);
 
- public:
-  bbox_distribution(
-    std::uniform_real_distribution<float> x_dist,
-    std::uniform_real_distribution<float> y_dist,
-    std::uniform_real_distribution<float> width_dist,
-    std::uniform_real_distribution<float> height_dist )
-    : x_dist(x_dist),
-    y_dist(y_dist),
-    width_dist(width_dist),
-    height_dist(height_dist) {}
+BBox bound(std::vector<BBox> boxes);
 
-  template <class RNG>
-  BBox operator()(RNG &gen);
-};
-
-#endif // _TRANSVERSE_BBOX_H_
+#endif  // BBOX_H_

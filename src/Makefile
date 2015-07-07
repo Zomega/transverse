@@ -1,8 +1,13 @@
-all: main.o filter.o
-	python cpplint.py *.cpp *.h *.cc
+all: main.o filter.o lint
 
-main.o: main.cpp
-	g++ -std=c++11 main.cpp -o main.o
+lint:
+	python cpplint.py --root=src *.h *.cc
 
-filter.o: filter.cpp
-	g++ -std=c++11 filter.cpp -o filter.o
+main.o: *.h *.cc
+	g++ -std=c++11 -I /usr/local/include main.cc bbox.cc rtree.cc naive_rstore.cc -o main.o
+
+filter.o: *.h *.cc
+	g++ -std=c++11 -I /usr/local/include filter.cc -o filter.o
+
+scratch.o: *.h *.cc
+	g++ -std=c++11 -I /usr/local/include scratch.cc edge.cc intersect.cc bbox.cc shape.cc -o scratch.o
